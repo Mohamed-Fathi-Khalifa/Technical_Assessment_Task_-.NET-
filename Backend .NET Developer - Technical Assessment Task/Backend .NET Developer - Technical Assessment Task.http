@@ -1,0 +1,6 @@
+@Backend_.NET_Developer___Technical_Assessment_Task_HostAddress = http://localhost:5125
+
+GET {{Backend_.NET_Developer___Technical_Assessment_Task_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
