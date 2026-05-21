@@ -1,4 +1,5 @@
 using Domain.Enums;
+using TaskStatus = Domain.Enums.TaskStatus;
 
 namespace Domain.Entities;
 
