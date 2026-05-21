@@ -1,31 +1,59 @@
+using Application.DependencyInjection;
 using Backend_.NET_Developer___Technical_Assessment_Task.Middlewares;
 using Infrastructure.Data;
 using Infrastructure.DependencyInjection;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ── Services ──────────────────────────────────────────────────────────────────
 
 builder.Services.AddControllers();
+builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 
 // Global exception handler (IExceptionHandler — .NET 8/9)
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
+// JWT Authentication
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+
+builder.Services
+    .AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme    = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer           = true,
+            ValidateAudience         = true,
+            ValidateLifetime         = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer              = jwtSettings["Issuer"],
+            ValidAudience            = jwtSettings["Audience"],
+            IssuerSigningKey         = new SymmetricSecurityKey(
+                                           Encoding.UTF8.GetBytes(jwtSettings["Key"]!))
+        };
+    });
+
 // Swagger with JWT Bearer support
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title   = "Task Management API",
-        Version = "v1",
+        Title       = "Task Management API",
+        Version     = "v1",
         Description = "Clean Architecture — Project & Task Management REST API"
     });
 
-    // 1. Define the JWT security scheme
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name         = "Authorization",
@@ -36,7 +64,6 @@ builder.Services.AddSwaggerGen(options =>
         Description  = "Paste your JWT token here. The 'Bearer ' prefix is added automatically."
     });
 
-    // 2. Require it globally — every endpoint shows the lock icon
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -74,11 +101,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "Task Management API v1");
-        options.RoutePrefix = string.Empty; // Serve Swagger UI at root "/"
+        options.RoutePrefix = string.Empty; // Serve Swagger UI at "/"
     });
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication(); // ← must come before UseAuthorization
 app.UseAuthorization();
 app.MapControllers();
 

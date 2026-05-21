@@ -1,5 +1,6 @@
 using Application.Interfaces;
 using Infrastructure.Data;
+using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,6 +21,8 @@ public static class InfrastructureServiceRegistration
         // Application depends on the abstraction; Infrastructure provides the concrete class.
         services.AddScoped<IApplicationDbContext>(provider =>
             provider.GetRequiredService<ApplicationDbContext>());
+
+        services.AddScoped<ITokenService, TokenService>();
 
         return services;
     }
