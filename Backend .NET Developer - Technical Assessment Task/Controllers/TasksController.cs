@@ -2,6 +2,7 @@ using Application.Common;
 using Application.Features.Tasks.Commands;
 using Application.Features.Tasks.DTOs;
 using Application.Features.Tasks.Queries;
+using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +10,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace Backend_.NET_Developer___Technical_Assessment_Task.Controllers;
 
 [Authorize]
+[ApiVersion("1.0")]
 [ApiController]
+[Route("api/v{version:apiVersion}")]
 public class TasksController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -17,7 +20,7 @@ public class TasksController : ControllerBase
     public TasksController(IMediator mediator) => _mediator = mediator;
 
     /// <summary>Get all tasks for a project (project must belong to the current user).</summary>
-    [HttpGet("api/projects/{projectId:int}/tasks")]
+    [HttpGet("projects/{projectId:int}/tasks")]
     public async Task<ActionResult<ApiResponse<List<TaskResponseDto>>>> GetByProject(
         int projectId,
         CancellationToken ct)
@@ -27,7 +30,7 @@ public class TasksController : ControllerBase
     }
 
     /// <summary>Create a new task inside a project.</summary>
-    [HttpPost("api/projects/{projectId:int}/tasks")]
+    [HttpPost("projects/{projectId:int}/tasks")]
     public async Task<ActionResult<ApiResponse<TaskResponseDto>>> Create(
         int projectId,
         [FromBody] CreateTaskDto dto,
@@ -39,7 +42,7 @@ public class TasksController : ControllerBase
     }
 
     /// <summary>Update the status of a task.</summary>
-    [HttpPatch("api/tasks/{id:int}/status")]
+    [HttpPatch("tasks/{id:int}/status")]
     public async Task<ActionResult<ApiResponse<TaskResponseDto>>> UpdateStatus(
         int id,
         [FromBody] UpdateTaskStatusDto dto,
@@ -50,7 +53,7 @@ public class TasksController : ControllerBase
     }
 
     /// <summary>Delete a task (project must belong to the current user).</summary>
-    [HttpDelete("api/tasks/{id:int}")]
+    [HttpDelete("tasks/{id:int}")]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(int id, CancellationToken ct)
     {
         var result = await _mediator.Send(new DeleteTaskCommand(id), ct);

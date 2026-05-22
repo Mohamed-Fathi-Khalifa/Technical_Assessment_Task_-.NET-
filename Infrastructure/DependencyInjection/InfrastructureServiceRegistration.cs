@@ -26,6 +26,13 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
 
+        // Redis distributed cache
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = configuration["Redis:ConnectionString"] ?? "localhost:6379";
+            options.InstanceName  = "TaskManagement_";
+        });
+
         return services;
     }
 }

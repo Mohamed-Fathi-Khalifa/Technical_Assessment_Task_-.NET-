@@ -1,4 +1,5 @@
 using Application.DependencyInjection;
+using Asp.Versioning;
 using Backend_.NET_Developer___Technical_Assessment_Task.Middlewares;
 using Infrastructure.Data;
 using Infrastructure.DependencyInjection;
@@ -16,6 +17,20 @@ builder.Services.AddControllers();
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
+
+// API Versioning (URL-segment strategy: /api/v1/...)
+builder.Services
+    .AddApiVersioning(options =>
+    {
+        options.DefaultApiVersion                = new ApiVersion(1, 0);
+        options.AssumeDefaultVersionWhenUnspecified = true;
+        options.ReportApiVersions               = true;
+    })
+    .AddApiExplorer(options =>
+    {
+        options.GroupNameFormat           = "'v'VVV";
+        options.SubstituteApiVersionInUrl = true;
+    });
 
 // Global exception handler (IExceptionHandler — .NET 8/9)
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();

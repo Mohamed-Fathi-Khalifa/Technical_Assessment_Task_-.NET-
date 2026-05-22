@@ -2,6 +2,7 @@ using Application.Common;
 using Application.Features.Projects.Commands;
 using Application.Features.Projects.DTOs;
 using Application.Features.Projects.Queries;
+using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,8 +10,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace Backend_.NET_Developer___Technical_Assessment_Task.Controllers;
 
 [Authorize]
+[ApiVersion("1.0")]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class ProjectsController : ControllerBase
 {
     private readonly IMediator _mediator;

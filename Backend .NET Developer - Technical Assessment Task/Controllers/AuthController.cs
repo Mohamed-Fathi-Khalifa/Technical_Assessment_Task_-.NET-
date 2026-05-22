@@ -1,20 +1,19 @@
 using Application.Common;
 using Application.Features.Auth.Commands;
+using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Backend_.NET_Developer___Technical_Assessment_Task.Controllers;
 
+[ApiVersion("1.0")]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class AuthController : ControllerBase
 {
     private readonly IMediator _mediator;
 
-    public AuthController(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
+    public AuthController(IMediator mediator) => _mediator = mediator;
 
     /// <summary>Register a new user account.</summary>
     [HttpPost("register")]
