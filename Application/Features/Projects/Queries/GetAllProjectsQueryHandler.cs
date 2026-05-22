@@ -33,15 +33,24 @@ public class GetAllProjectsQueryHandler
     {
         var cacheKey = $"projects-user-{_currentUser.UserId}";
 
-        // 1. Try cache first
-        var cached = await _cache.GetStringAsync(cacheKey, cancellationToken);
-        if (cached is not null)
+        // ── 1. Try the cache (read) ───────────────────────────────────────────
+        // If Redis is unavailable (timeout, connection refused, etc.) we catch
+        // the exception silently and fall through to the database.
+        try
         {
-            var cachedList = JsonSerializer.Deserialize<List<ProjectResponseDto>>(cached);
-            return ApiResponse<List<ProjectResponseDto>>.Ok(cachedList!);
+            var cached = await _cache.GetStringAsync(cacheKey, cancellationToken);
+            if (cached is not null)
+            {
+                var cachedList = JsonSerializer.Deserialize<List<ProjectResponseDto>>(cached);
+                return ApiResponse<List<ProjectResponseDto>>.Ok(cachedList!);
+            }
+        }
+        catch
+        {
+            // Redis unavailable — proceed to database fallback
         }
 
-        // 2. Cache miss — fetch from database
+        // ── 2. Cache miss (or Redis down) — fetch from the database ──────────
         var projects = await _context.Projects
             .AsNoTracking()
             .Where(p => p.UserId == _currentUser.UserId)
@@ -55,12 +64,20 @@ public class GetAllProjectsQueryHandler
             })
             .ToListAsync(cancellationToken);
 
-        // 3. Store in cache with expiry
-        var serialized = JsonSerializer.Serialize(projects);
-        await _cache.SetStringAsync(cacheKey, serialized, new DistributedCacheEntryOptions
+        // ── 3. Try to populate the cache (write) ─────────────────────────────
+        // A caching failure must NEVER prevent the caller from receiving data.
+        try
         {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(CacheExpiryMinutes)
-        }, cancellationToken);
+            var serialized = JsonSerializer.Serialize(projects);
+            await _cache.SetStringAsync(cacheKey, serialized, new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(CacheExpiryMinutes)
+            }, cancellationToken);
+        }
+        catch
+        {
+            // Redis unavailable — DB data is returned successfully regardless
+        }
 
         return ApiResponse<List<ProjectResponseDto>>.Ok(projects);
     }

@@ -27,6 +27,15 @@ public class ProjectsController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>Get all projects in the system (Admin only).</summary>
+    [HttpGet("all")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<List<ProjectResponseDto>>>> GetAllAdmin(CancellationToken ct)
+    {
+        var result = await _mediator.Send(new GetAllProjectsAdminQuery(), ct);
+        return Ok(result);
+    }
+
     /// <summary>Get a single project by ID (must belong to the current user).</summary>
     [HttpGet("{id:int}")]
     public async Task<ActionResult<ApiResponse<ProjectResponseDto>>> GetById(int id, CancellationToken ct)

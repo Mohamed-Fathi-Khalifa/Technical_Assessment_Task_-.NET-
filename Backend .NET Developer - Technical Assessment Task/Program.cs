@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Security.Claims;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -55,6 +56,7 @@ builder.Services
             ValidateIssuerSigningKey = true,
             ValidIssuer              = jwtSettings["Issuer"],
             ValidAudience            = jwtSettings["Audience"],
+            RoleClaimType            = ClaimTypes.Role,
             IssuerSigningKey         = new SymmetricSecurityKey(
                                            Encoding.UTF8.GetBytes(jwtSettings["Key"]!))
         };
