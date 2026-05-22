@@ -15,6 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
+builder.Services.AddHttpContextAccessor();
 
 // Global exception handler (IExceptionHandler — .NET 8/9)
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
